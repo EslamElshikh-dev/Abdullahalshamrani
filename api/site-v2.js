@@ -1,4 +1,8 @@
 const ORIGIN = 'https://abdullah-alshamrani-store-na7soaxqx-moqawel1215-3361s-projects.vercel.app';
+const OLD_PHONE = '0569600322';
+const OLD_WA = '966569600322';
+const PHONE = '0505782716';
+const WA = '966505782716';
 
 const LIGHT_LOGO_CSS = `
 .header .nav{position:relative;justify-content:center}
@@ -24,6 +28,12 @@ function brightenLogo(html) {
     .replaceAll('stroke="#153b70"','stroke="#8bdff0"')
     .replaceAll('fill="#071d35" stroke="#123f75"','fill="#0b3550" stroke="#64d9eb"')
     .replaceAll('stroke="#0b65a0"','stroke="#e8fbff"');
+}
+
+function updateContact(html) {
+  return html
+    .replaceAll(OLD_WA, WA)
+    .replaceAll(OLD_PHONE, PHONE);
 }
 
 module.exports = async (req, res) => {
@@ -53,6 +63,7 @@ module.exports = async (req, res) => {
 
     let html = await upstream.text();
     html = brightenLogo(html);
+    html = updateContact(html);
     html = html.replace('</style>', `${LIGHT_LOGO_CSS}</style>`);
     return res.end(html);
   } catch (error) {
