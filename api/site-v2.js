@@ -1,4 +1,4 @@
-const ORIGIN = 'https://abdullah-alshamrani-store-4nt0emcqm-moqawel1215-3361s-projects.vercel.app';
+const ORIGIN = 'https://abdullah-alshamrani-store-na7soaxqx-moqawel1215-3361s-projects.vercel.app';
 const OLD_PHONE = '0569600322';
 const OLD_WA = '966569600322';
 const PHONE = '0505782716';
