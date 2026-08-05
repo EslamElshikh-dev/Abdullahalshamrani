@@ -57,6 +57,8 @@ const ASSISTANT_SVG = `<svg class="ash-bot-svg" viewBox="0 0 64 64" aria-hidden=
   <path d="M20 53v4.5M44 53v4.5" stroke="#FFD45A" stroke-width="3" stroke-linecap="round"/>
 </svg>`;
 
+const ASSISTANT_HTML = `<div id="ash-assistant-root"><div class="ash-launcher-wrap"><span class="ash-help-label">محتاج مساعدة</span><button class="ash-launcher" id="ash-open" aria-label="فتح المساعد الذكي">${ASSISTANT_SVG}</button></div><div class="ash-overlay" id="ash-overlay"></div><aside class="ash-panel" id="ash-panel"><div class="ash-head"><span class="ash-head-bot">${ASSISTANT_SVG}</span><strong>مساعد المتجر الذكي</strong><button class="ash-close" id="ash-close" aria-label="إغلاق">×</button></div><div class="ash-body"><div class="ash-welcome">اختر سؤالًا سريعًا أو اكتب طلبك لإرساله مباشرة عبر واتساب.</div><button class="ash-q" data-a="نوفر مواد بناء ومستلزمات سباكة وكهرباء ومواد جبسية ولمبات وإنارة حديثة، مع خدمات التأسيس والتشطيب والصيانة.">ما المنتجات والخدمات المتوفرة؟</button><button class="ash-q" data-a="نخدم ظهرة لبن ولبن وعرقة وجميع أحياء شمال وشرق وغرب ووسط وجنوب الرياض بحسب نوع الطلب وتوفر الفريق.">ما الأحياء التي تغطيها الخدمة؟</button><button class="ash-q" data-a="أرسل اسم المنتج أو الخدمة والحي ونوع المبنى والكمية أو صور العطل عبر واتساب للحصول على تقييم أولي.">كيف أطلب عرض سعر؟</button><button class="ash-q" data-a="يتوفر التعامل مع أعطال الكهرباء والسباكة العاجلة على مدار الساعة بحسب موقع البلاغ وتوفر الفريق.">هل توجد خدمة طوارئ؟</button><button class="ash-q" data-a="رقم الاتصال وواتساب هو 0505782716، وموقع المتجر في ظهرة لبن بمدينة الرياض.">كيف أتواصل مع المتجر؟</button><div class="ash-answer" id="ash-answer">اضغط على أحد الأسئلة لعرض الإجابة.</div></div><form class="ash-form" id="ash-form"><textarea id="ash-message" placeholder="اكتب طلبك هنا..." required></textarea><button class="ash-send" type="submit">إرسال عبر واتساب</button></form></aside></div><script>(function(){const p=document.getElementById('ash-panel'),o=document.getElementById('ash-overlay'),open=document.getElementById('ash-open'),close=document.getElementById('ash-close'),ans=document.getElementById('ash-answer');function show(){p.classList.add('open');o.classList.add('open')}function hide(){p.classList.remove('open');o.classList.remove('open')}open.onclick=show;close.onclick=hide;o.onclick=hide;document.querySelectorAll('.ash-q').forEach(b=>b.onclick=()=>{ans.textContent=b.dataset.a});document.getElementById('ash-form').onsubmit=function(e){e.preventDefault();const t=document.getElementById('ash-message').value.trim();if(t)window.open('https://wa.me/${WA}?text='+encodeURIComponent(t),'_blank','noopener,noreferrer')};})();</script>`;
+
 function brightenLogo(html) {
   return html
     .replaceAll('fill="#12356f"','fill="#f8fbff"')
@@ -74,16 +76,13 @@ function updateContact(html) {
 }
 
 function enhanceAssistant(html) {
-  html = html.replace(
-    '<button class="ash-launcher" id="ash-open" aria-label="فتح المساعد">🤖</button>',
-    `<button class="ash-launcher" id="ash-open" aria-label="فتح المساعد الذكي">${ASSISTANT_SVG}</button>`
-  );
-  html = html.replace(
-    '<div class="ash-head"><span>🤖</span><strong>',
-    `<div class="ash-head"><span class="ash-head-bot">${ASSISTANT_SVG}</span><strong>`
-  );
   html = html.replace('</style>', `${LIGHT_LOGO_CSS}${ASSISTANT_CSS}</style>`);
-  return html;
+  if (html.includes('id="ash-assistant-root"')) {
+    html = html.replace('<button class="ash-launcher" id="ash-open" aria-label="فتح المساعد">🤖</button>', `<button class="ash-launcher" id="ash-open" aria-label="فتح المساعد الذكي">${ASSISTANT_SVG}</button>`);
+    html = html.replace('<div class="ash-head"><span>🤖</span><strong>', `<div class="ash-head"><span class="ash-head-bot">${ASSISTANT_SVG}</span><strong>`);
+    return html;
+  }
+  return html.replace('</body>', `${ASSISTANT_HTML}</body>`);
 }
 
 module.exports = async (req, res) => {
