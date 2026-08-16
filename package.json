@@ -1,0 +1,14 @@
+{
+  "name": "abdullah-alshamrani-contracting",
+  "version": "2.0.0",
+  "private": true,
+  "description": "موقع مكتب عبدالله عبدالرحمن الشمراني للتجارة والمقاولات",
+  "scripts": {
+    "build": "node scripts/build-site.js",
+    "validate": "node tests/validate.js",
+    "test": "npm run build && npm run validate"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

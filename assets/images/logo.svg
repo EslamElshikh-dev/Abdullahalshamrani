@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="logo-title logo-desc">
+  <title id="logo-title">شعار مكتب عبدالله عبدالرحمن الشمراني للتجارة والمقاولات</title>
+  <desc id="logo-desc">رمز هندسي لمبنى باللون الكحلي والذهبي</desc>
+  <defs>
+    <linearGradient id="logo-bg" x1="70" y1="52" x2="438" y2="468" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#174c72"/>
+      <stop offset="1" stop-color="#061421"/>
+    </linearGradient>
+    <linearGradient id="logo-gold" x1="132" y1="126" x2="386" y2="386" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffd785"/>
+      <stop offset="1" stop-color="#d98b16"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#logo-bg)"/>
+  <rect x="35" y="35" width="442" height="442" rx="86" fill="none" stroke="#ffd785" stroke-opacity=".32" stroke-width="8"/>
+  <path d="M112 380h288" fill="none" stroke="url(#logo-gold)" stroke-width="22" stroke-linecap="round"/>
+  <path d="M142 354V214l114-84 114 84v140" fill="none" stroke="url(#logo-gold)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M206 354V242h100v112M256 130v-34M216 96h80" fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M101 224 256 109l155 115" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="300" r="11" fill="#efa92f"/>
+</svg>
