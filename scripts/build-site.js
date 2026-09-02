@@ -124,7 +124,7 @@ function footer() {
     '<div><h2>روابط مهمة</h2><div class="footer-links"><a href="/about/">من نحن</a><a href="/certificates/">الشهادات والوثائق</a><a href="/blog/">المدونة</a><a href="/contact/">تواصل معنا</a><a href="/privacy/">سياسة الخصوصية</a></div></div>' +
     '<div><h2>بيانات النشاط</h2><div class="footer-data"><span><strong>الهاتف:</strong> <a href="tel:' + business.phoneInternational + '">' + business.phoneDisplay + '</a></span><span><strong>الرقم الوطني الموحد:</strong> ' + business.nationalUnifiedNumber + '</span><span><strong>عضوية المقاولين:</strong> ' + business.contractorsMembership + '</span><span><strong>العنوان:</strong> ' + escapeHtml(business.address) + '</span><span><strong>الدوام:</strong> ' + escapeHtml(business.hoursLabel) + '</span></div></div>' +
     '</div>' +
-    '<div class="developer-credit"><span>Developed by</span><a href="https://eslam-elshikh.com" target="_blank" rel="noopener noreferrer">Eslam Elshikh</a></div>' +
+    '<div class="developer-credit"><span>Developed by</span><a href="https://www.eslam-elshikh.com/" target="_blank" rel="noopener noreferrer">Eslam Elshikh</a></div>' +
     '<div class="footer-bottom"><span>جميع الحقوق محفوظة © 2026 ' + escapeHtml(business.name) + '</span><span>مقاولات عامة • تشطيبات • صيانة • توريد مواد</span></div>' +
     '</div></footer>';
 }
@@ -260,7 +260,14 @@ function schemaGraph(page, extraNodes, faqs, breadcrumbs) {
     url: business.siteUrl + '/',
     name: business.name,
     inLanguage: 'ar-SA',
-    publisher: { '@id': business.siteUrl + '/#business' }
+    publisher: { '@id': business.siteUrl + '/#business' },
+    creator: {
+      '@type': 'Person',
+      '@id': 'https://www.eslam-elshikh.com/#person',
+      name: 'إسلام الشيخ',
+      alternateName: ['المهندس إسلام الشيخ', 'Eslam Elshikh'],
+      url: 'https://www.eslam-elshikh.com/'
+    }
   };
   const webPage = {
     '@type': page.schemaType || 'WebPage',
