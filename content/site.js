@@ -3,7 +3,7 @@
 const business = {
   name: 'مكتب عبدالله عبدالرحمن الشمراني التجارية',
   shortName: 'مكتب عبدالله الشمراني',
-  englishName: 'Abdullah Abdulrahman Alshamrani Office Commercial',
+  englishName: 'Abdullah Abdulrahman Alshamrani Commercial Office',
   schemaType: 'HardwareStore',
   siteUrl: 'https://abdullah-alshamrani-store.vercel.app',
   description: 'مواد بناء وديكورات جبسية ومستلزمات كهرباء وسباكة في ظهرة لبن بالرياض، مع خدمات المقاولات والتشطيب والصيانة حسب نطاق الطلب.',
@@ -25,6 +25,9 @@ const business = {
   municipalLicense: '470621985477',
   heroImage: '/assets/images/hero/store-front.jpg',
   heroWebp: '/assets/images/hero/store-front.webp',
+  shareImage: '/assets/images/hero/store-front-original.jpg',
+  shareImageWidth: 1385,
+  shareImageHeight: 1536,
   logo: '/assets/images/logo.svg',
   mapsUrl: 'https://maps.app.goo.gl/xP1R3HWDcSMma2Lt8?g_st=ac',
   mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d8575.676451190091!2d46.5360867!3d24.6334096!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e2f1f000c77d361%3A0xd0e187b64140faed!2z2KfZhNmF2YjYp9ivINio2YbYp9ihINin2YTYr9uM2qnZiNix2KfYqiDYp9mE2KzYqNiz24zbgw!5e1!3m2!1sar!2sin!4v1786844041256!5m2!1sar!2sin'

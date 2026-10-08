@@ -212,7 +212,7 @@ function localBusinessSchema() {
       width: 512,
       height: 512
     },
-    image: [absoluteUrl(business.heroImage)],
+    image: [absoluteUrl(business.shareImage)],
     hasMap: business.mapsUrl,
     sameAs: [business.mapsUrl],
     contactPoint: {
@@ -278,7 +278,7 @@ function schemaGraph(page, extraNodes, breadcrumbs) {
     inLanguage: 'ar-SA',
     isPartOf: { '@id': business.siteUrl + '/#website' },
     about: { '@id': business.siteUrl + '/#business' },
-    primaryImageOfPage: { '@type': 'ImageObject', url: absoluteUrl(page.image || business.heroImage) }
+    primaryImageOfPage: { '@type': 'ImageObject', url: absoluteUrl(page.image || business.shareImage) }
   };
   const crumbItems = (breadcrumbs || []).map(function (crumb, index) {
     return {
@@ -308,7 +308,8 @@ function schemaGraph(page, extraNodes, breadcrumbs) {
 
 function documentHead(page, schemaJson) {
   const canonical = absoluteUrl(page.path);
-  const image = absoluteUrl(page.image || business.heroImage);
+  const image = absoluteUrl(page.image || business.shareImage);
+  const imageDimensions = page.image ? '' : '<meta property="og:image:width" content="' + business.shareImageWidth + '"><meta property="og:image:height" content="' + business.shareImageHeight + '">';
   const robots = page.noindex ? 'noindex,follow' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
   const articleMeta = page.ogType === 'article'
     ? '<meta property="article:published_time" content="' + escapeHtml(page.datePublished || '') + '"><meta property="article:modified_time" content="' + escapeHtml(page.dateModified || '') + '">'
@@ -323,7 +324,7 @@ function documentHead(page, schemaJson) {
     '<meta name="robots" content="' + robots + '"><link rel="canonical" href="' + canonical + '"><link rel="alternate" hreflang="ar-SA" href="' + canonical + '">' +
     '<meta name="theme-color" content="#061421"><meta name="color-scheme" content="light">' +
     '<meta property="og:locale" content="ar_SA"><meta property="og:site_name" content="' + escapeHtml(business.name) + '"><meta property="og:type" content="' + escapeHtml(page.ogType || 'website') + '">' +
-    '<meta property="og:title" content="' + escapeHtml(page.title) + '"><meta property="og:description" content="' + escapeHtml(page.description) + '"><meta property="og:url" content="' + canonical + '"><meta property="og:image" content="' + image + '"><meta property="og:image:alt" content="' + escapeHtml(page.imageAlt || 'واجهة مقر ' + business.name) + '">' +
+    '<meta property="og:title" content="' + escapeHtml(page.title) + '"><meta property="og:description" content="' + escapeHtml(page.description) + '"><meta property="og:url" content="' + canonical + '"><meta property="og:image" content="' + image + '">' + imageDimensions + '<meta property="og:image:alt" content="' + escapeHtml(page.imageAlt || 'واجهة مقر ' + business.name) + '">' +
     '<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="' + escapeHtml(page.title) + '"><meta name="twitter:description" content="' + escapeHtml(page.description) + '"><meta name="twitter:image" content="' + image + '">' +
     articleMeta +
     '<link rel="icon" href="/assets/images/logo.svg" type="image/svg+xml"><link rel="manifest" href="/site.webmanifest"><link rel="alternate" type="application/rss+xml" title="مدونة ' + escapeHtml(business.shortName) + '" href="/feed.xml">' +
@@ -627,7 +628,7 @@ function articleDetailPage(post) {
     mainEntityOfPage: { '@id': absoluteUrl(pathName) + '#webpage' },
     author: { '@id': business.siteUrl + '/#business' },
     publisher: { '@id': business.siteUrl + '/#business' },
-    image: absoluteUrl(business.heroImage),
+    image: absoluteUrl(business.shareImage),
     articleSection: post.category,
     keywords: [post.category, 'مقاولات', 'الرياض', 'السعودية']
   };
