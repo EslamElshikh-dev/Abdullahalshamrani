@@ -309,7 +309,7 @@ function schemaGraph(page, extraNodes, breadcrumbs) {
 function documentHead(page, schemaJson) {
   const canonical = absoluteUrl(page.path);
   const image = absoluteUrl(page.image || business.shareImage);
-  const imageDimensions = page.image ? '' : '<meta property="og:image:width" content="' + business.shareImageWidth + '"><meta property="og:image:height" content="' + business.shareImageHeight + '">';
+  const imageDimensions = page.image && page.image !== business.shareImage ? '' : '<meta property="og:image:width" content="' + business.shareImageWidth + '"><meta property="og:image:height" content="' + business.shareImageHeight + '">';
   const robots = page.noindex ? 'noindex,follow' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
   const articleMeta = page.ogType === 'article'
     ? '<meta property="article:published_time" content="' + escapeHtml(page.datePublished || '') + '"><meta property="article:modified_time" content="' + escapeHtml(page.dateModified || '') + '">'
@@ -429,7 +429,7 @@ function homePage() {
     title: 'مكتب عبدالله عبدالرحمن الشمراني التجارية | الرياض',
     description: business.description,
     preloadHero: true,
-    image: business.heroImage,
+    image: business.shareImage,
     imageAlt: 'واجهة محل مواد البناء والديكورات الجبسية التابع للمكتب في ظهرة لبن بالرياض'
   };
   const categoryCards = categories.map(categoryCard).join('');
