@@ -85,7 +85,33 @@ routes.forEach(function (route) {
   const schemaText = JSON.stringify(schema);
   assert.ok(schemaText.includes(business.name), route + ' schema is missing the business name');
   assert.ok(schemaText.includes(business.phoneInternational), route + ' schema is missing the international phone');
-  assert.ok(schemaText.includes(business.mapEmbedUrl), route + ' schema is missing the business map');
+  const entity = schema['@graph'].find(function (node) { return node['@id'] === business.siteUrl + '/#business'; });
+  assert.ok(entity, route + ' is missing the shared business entity');
+  assert.equal(entity.legalName, 'مكتب عبدالله عبدالرحمن الشمراني التجارية', route + ' has a mismatched legal name');
+  assert.equal(entity.name, entity.legalName, route + ' has conflicting business names');
+  assert.equal(entity['@type'], 'HardwareStore', route + ' does not describe the storefront category');
+  assert.equal(entity.hasMap, business.mapsUrl, route + ' links to a different Maps listing');
+  assert.deepEqual(entity.sameAs, [business.mapsUrl], route + ' has conflicting identity links');
+  assert.equal(entity.address.streetAddress, 'شارع تبوك، حي ظهرة لبن', route + ' has an incorrect street address');
+  assert.equal(entity.address.postalCode, '13784', route + ' has an incorrect postal code');
+  assert.equal(entity.geo.latitude, 24.6334096, route + ' has incorrect latitude');
+  assert.equal(entity.geo.longitude, 46.5360867, route + ' has incorrect longitude');
+  assert.ok(!entity.openingHoursSpecification && !entity.contactPoint.hoursAvailable, route + ' includes unconfirmed opening hours');
+  assert.ok(!entity.aggregateRating && !entity.review, route + ' includes self-serving review markup');
+  assert.ok(!schema['@graph'].some(function (node) { return node['@type'] === 'FAQPage'; }), route + ' includes retired FAQ rich-result markup');
+  assert.ok(!html.includes('4:30') && !html.includes('04:30') && !html.includes('الجمعة: مغلق'), route + ' displays unconfirmed opening hours');
+  assert.ok(!html.includes('للتجارة والمقاولات'), route + ' retains the previous business name');
+  assert.ok(/\/assets\/css\/styles\.css\?v=[a-f0-9]{12}/.test(html), route + ' does not version its stylesheet');
+
+  const nodeIds = new Set(schema['@graph'].map(function (node) { return node['@id']; }));
+  function checkReferences(value) {
+    if (!value || typeof value !== 'object') return;
+    if (value['@id'] && value['@id'].startsWith(business.siteUrl) && Object.keys(value).length === 1) {
+      assert.ok(nodeIds.has(value['@id']), route + ' has an unresolved schema reference ' + value['@id']);
+    }
+    Object.values(value).forEach(checkReferences);
+  }
+  checkReferences(schema);
 
   const hrefs = Array.from(html.matchAll(/href="([^"]+)"/g), function (match) { return match[1]; });
   hrefs.forEach(function (href) {
