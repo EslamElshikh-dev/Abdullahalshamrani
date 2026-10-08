@@ -1,32 +1,35 @@
 'use strict';
 
 const business = {
-  name: 'مكتب عبدالله عبدالرحمن الشمراني للتجارة والمقاولات',
+  name: 'مكتب عبدالله عبدالرحمن الشمراني التجارية',
   shortName: 'مكتب عبدالله الشمراني',
-  englishName: 'Abdullah Abdulrahman Alshamrani Office for Trading and Contracting',
+  englishName: 'Abdullah Abdulrahman Alshamrani Commercial Office',
+  schemaType: 'HardwareStore',
   siteUrl: 'https://abdullah-alshamrani-store.vercel.app',
-  description: 'مكتب مقاولات عامة في الرياض يقدم البناء العظم والتسليم مفتاح والتشطيبات والترميم والصيانة وأعمال الكهرباء والسباكة وتوريد مواد البناء والمستلزمات.',
+  description: 'مواد بناء وديكورات جبسية ومستلزمات كهرباء وسباكة في ظهرة لبن بالرياض، مع خدمات المقاولات والتشطيب والصيانة حسب نطاق الطلب.',
   phoneDisplay: '0569600322',
   phoneInternational: '+966569600322',
   whatsapp: '966569600322',
   address: 'JGMP+9C8، شارع تبوك، حي ظهرة لبن، الرياض 13784، المملكة العربية السعودية',
-  streetAddress: 'JGMP+9C8، شارع تبوك، حي ظهرة لبن',
+  streetAddress: 'شارع تبوك، حي ظهرة لبن',
   locality: 'الرياض',
   region: 'منطقة الرياض',
   postalCode: '13784',
   country: 'SA',
   latitude: 24.6334096,
   longitude: 46.5360867,
-  hoursLabel: 'من السبت إلى الخميس، من 4:30 صباحًا إلى 8:00 مساءً',
-  opens: '04:30',
-  closes: '20:00',
-  closedDay: 'Friday',
+  hoursLabel: 'تواصل معنا لتأكيد مواعيد زيارة المحل',
+  contentUpdatedAt: '2026-10-08',
   nationalUnifiedNumber: '7051429590',
   contractorsMembership: '2026202614',
   municipalLicense: '470621985477',
   heroImage: '/assets/images/hero/store-front.jpg',
   heroWebp: '/assets/images/hero/store-front.webp',
+  shareImage: '/assets/images/hero/store-front-original.jpg',
+  shareImageWidth: 1385,
+  shareImageHeight: 1536,
   logo: '/assets/images/logo.svg',
+  mapsUrl: 'https://maps.app.goo.gl/xP1R3HWDcSMma2Lt8?g_st=ac',
   mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d8575.676451190091!2d46.5360867!3d24.6334096!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e2f1f000c77d361%3A0xd0e187b64140faed!2z2KfZhNmF2YjYp9ivINio2YbYp9ihINin2YTYr9uM2qnZiNix2KfYqiDYp9mE2KzYqNiz24zbgw!5e1!3m2!1sar!2sin!4v1786844041256!5m2!1sar!2sin'
 };
 
@@ -63,7 +66,7 @@ const categories = [
 
 const homeFaqs = [
   {
-    question: 'ما الخدمات التي يقدمها مكتب عبدالله الشمراني للتجارة والمقاولات؟',
+    question: 'ما الخدمات التي يقدمها مكتب عبدالله الشمراني التجارية؟',
     answer: 'نقدم أعمال المقاولات العامة والبناء العظم والتسليم مفتاح والترميم والتشطيبات والجبس والدهانات والأرضيات، إضافة إلى تأسيس وصيانة الكهرباء والسباكة وتوريد مواد البناء والمستلزمات داخل الرياض.'
   },
   {
@@ -95,8 +98,8 @@ const homeFaqs = [
     answer: 'نعم، تشمل الخدمة تشخيص أعطال الكهرباء والسباكة والتسربات والانسدادات ومشكلات الصرف، ثم تحديد الإجراء والقطع المطلوبة. الاستجابة تكون خلال ساعات العمل وبحسب توفر الفريق وطبيعة البلاغ.'
   },
   {
-    question: 'ما ساعات العمل الرسمية؟',
-    answer: 'ساعات العمل من السبت إلى الخميس، من الساعة 4:30 صباحًا حتى 8:00 مساءً. يوم الجمعة مغلق، ويمكن إرسال تفاصيل الطلب عبر واتساب ليتم الرد خلال أوقات العمل.'
+    question: 'كيف أتأكد من موعد زيارة المحل؟',
+    answer: 'اتصل على 0569600322 أو تواصل عبر واتساب لتأكيد موعد زيارة المحل قبل التوجه إلى المقر في شارع تبوك بحي ظهرة لبن. ويمكن إرسال تفاصيل طلب المواد أو الخدمة لتنسيق الموعد المناسب.'
   },
   {
     question: 'هل توجد وثائق وشهادات للنشاط؟',
@@ -143,7 +146,7 @@ const assistantFaqs = [
   },
   {
     question: 'ما أوقات التواصل؟',
-    answer: 'نعمل من السبت إلى الخميس من 4:30 صباحًا حتى 8:00 مساءً. يمكنك كتابة طلبك هنا وإرساله عبر واتساب ليتم التعامل معه خلال ساعات العمل.'
+    answer: 'تواصل معنا على 0569600322 لتأكيد موعد الزيارة أو المعاينة. يمكنك أيضًا كتابة طلبك هنا وإرساله عبر واتساب لتنسيق الوقت المناسب.'
   }
 ];
 
@@ -220,7 +223,7 @@ const certificates = [
     slug: 'commercial-license',
     title: 'رخصة نشاط تجاري',
     subtitle: 'خدمات بلدي — أمانة منطقة الرياض',
-    description: 'رخصة النشاط التجاري المرفقة وتتضمن بيانات الموقع والنشاط التفصيلي كما تظهر في الوثيقة.',
+    description: 'رخصة نشاط باسم المكتب لتركيب الأسقف الداخلية والحواجز وتلبيس الجدران بالأخشاب، في شارع تبوك بحي ظهرة لبن بالرياض.',
     registrationNumber: '470621985477',
     validUntil: '1448/07/02 هـ',
     thumb: '/assets/images/certificates/thumbs/commercial-license.webp',

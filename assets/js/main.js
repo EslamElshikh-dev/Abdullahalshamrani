@@ -17,6 +17,10 @@
 
     function setMenuState(open) {
       if (!menuButton || !navigation) return;
+      if (open) {
+        var header = document.querySelector('.site-header');
+        if (header) navigation.style.setProperty('--menu-top', Math.max(8, header.getBoundingClientRect().bottom + 8) + 'px');
+      }
       menuButton.setAttribute('aria-expanded', String(open));
       navigation.classList.toggle('is-open', open);
       document.body.classList.toggle('nav-open', open && window.innerWidth <= 1120);
@@ -64,6 +68,8 @@
     window.addEventListener('resize', function () {
       if (window.innerWidth > 1120) {
         setMenuState(false);
+      } else if (navigation && navigation.classList.contains('is-open')) {
+        setMenuState(true);
       }
     }, { passive: true });
 

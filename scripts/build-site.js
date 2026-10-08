@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { createHash } = require('node:crypto');
 const { business, categories, homeFaqs, assistantFaqs, certificates } = require('../content/site');
 const services = require('../content/services');
 const posts = require('../content/posts');
@@ -9,6 +10,15 @@ const posts = require('../content/posts');
 const projectRoot = path.resolve(__dirname, '..');
 const distRoot = path.join(projectRoot, 'dist');
 const generatedRoutes = [];
+const assetVersions = new Map();
+
+function versionedAsset(resourcePath) {
+  if (!assetVersions.has(resourcePath)) {
+    const contents = fs.readFileSync(path.join(projectRoot, resourcePath));
+    assetVersions.set(resourcePath, createHash('sha256').update(contents).digest('hex').slice(0, 12));
+  }
+  return resourcePath + '?v=' + assetVersions.get(resourcePath);
+}
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -65,7 +75,7 @@ function icon(name, className) {
 function brandMarkup() {
   return '<a class="site-brand" href="/" aria-label="الرئيسية — ' + escapeHtml(business.name) + '">' +
     '<span class="site-brand-mark"><img src="' + business.logo + '" alt="" width="55" height="55" decoding="async"></span>' +
-    '<span class="site-brand-copy"><strong>' + escapeHtml(business.name.replace(' للتجارة والمقاولات', '')) + '</strong><small>للتجارة والمقاولات</small></span>' +
+    '<span class="site-brand-copy"><strong>' + escapeHtml(business.name.replace(' التجارية', '')) + '</strong><small> التجارية</small></span>' +
     '</a>';
 }
 
@@ -90,7 +100,7 @@ function header(pathname) {
   }).join('');
 
   return '<div class="site-topbar"><div class="container site-topbar-inner">' +
-    '<div class="site-topbar-group"><span>' + icon('map') + escapeHtml(business.address) + '</span></div>' +
+    '<div class="site-topbar-group"><a href="' + escapeHtml(business.mapsUrl) + '" target="_blank" rel="noopener noreferrer">' + icon('map') + escapeHtml(business.address) + '</a></div>' +
     '<div class="site-topbar-group"><span>' + icon('clock') + escapeHtml(business.hoursLabel) + '</span><a href="tel:' + business.phoneInternational + '">' + icon('phone') + escapeHtml(business.phoneDisplay) + '</a></div>' +
     '</div></div>' +
     '<header class="site-header"><div class="container site-header-inner">' +
@@ -122,7 +132,7 @@ function footer() {
     '<div class="footer-brand">' + brandMarkup() + '<p>' + escapeHtml(business.description) + '</p></div>' +
     '<div><h2>خدمات رئيسية</h2><div class="footer-links">' + serviceLinks + '<a href="/services/">جميع الخدمات</a></div></div>' +
     '<div><h2>روابط مهمة</h2><div class="footer-links"><a href="/about/">من نحن</a><a href="/certificates/">الشهادات والوثائق</a><a href="/blog/">المدونة</a><a href="/contact/">تواصل معنا</a><a href="/privacy/">سياسة الخصوصية</a></div></div>' +
-    '<div><h2>بيانات النشاط</h2><div class="footer-data"><span><strong>الهاتف:</strong> <a href="tel:' + business.phoneInternational + '">' + business.phoneDisplay + '</a></span><span><strong>الرقم الوطني الموحد:</strong> ' + business.nationalUnifiedNumber + '</span><span><strong>عضوية المقاولين:</strong> ' + business.contractorsMembership + '</span><span><strong>العنوان:</strong> ' + escapeHtml(business.address) + '</span><span><strong>الدوام:</strong> ' + escapeHtml(business.hoursLabel) + '</span></div></div>' +
+    '<div><h2>بيانات النشاط</h2><div class="footer-data"><span><strong>الهاتف:</strong> <a href="tel:' + business.phoneInternational + '">' + business.phoneDisplay + '</a></span><span><strong>الرقم الوطني الموحد:</strong> ' + business.nationalUnifiedNumber + '</span><span><strong>عضوية المقاولين:</strong> ' + business.contractorsMembership + '</span><span><strong>العنوان:</strong> ' + escapeHtml(business.address) + '</span><span><strong>مواعيد الزيارة:</strong> ' + escapeHtml(business.hoursLabel) + '</span><a href="' + escapeHtml(business.mapsUrl) + '" target="_blank" rel="noopener noreferrer">موقع المحل على خرائط جوجل</a></div></div>' +
     '</div>' +
     '<div class="developer-credit"><span>Developed by</span><a href="https://www.eslam-elshikh.com/" target="_blank" rel="noopener noreferrer">Eslam Elshikh</a></div>' +
     '<div class="footer-bottom"><span>جميع الحقوق محفوظة © 2026 ' + escapeHtml(business.name) + '</span><span>مقاولات عامة • تشطيبات • صيانة • توريد مواد</span></div>' +
@@ -177,17 +187,18 @@ function localBusinessSchema() {
       }
     };
   });
-  const credentials = certificates.slice(0, 4).map(function (certificate) {
+  const certifications = certificates.filter(function (certificate) { return certificate.slug.startsWith('iso-'); }).map(function (certificate) {
     return {
-      '@type': 'EducationalOccupationalCredential',
+      '@type': 'Certification',
       name: certificate.title,
-      credentialCategory: certificate.subtitle,
+      description: certificate.subtitle,
       identifier: certificate.registrationNumber,
+      url: absoluteUrl(certificate.original),
       image: absoluteUrl(certificate.original)
     };
   });
   return {
-    '@type': 'HomeAndConstructionBusiness',
+    '@type': business.schemaType,
     '@id': business.siteUrl + '/#business',
     name: business.name,
     legalName: business.name,
@@ -201,19 +212,14 @@ function localBusinessSchema() {
       width: 512,
       height: 512
     },
-    image: [absoluteUrl(business.heroImage)],
-    hasMap: business.mapEmbedUrl,
+    image: [absoluteUrl(business.shareImage)],
+    hasMap: business.mapsUrl,
+    sameAs: [business.mapsUrl],
     contactPoint: {
       '@type': 'ContactPoint',
       telephone: business.phoneInternational,
       contactType: 'customer service',
-      availableLanguage: ['Arabic'],
-      hoursAvailable: {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
-        opens: business.opens,
-        closes: business.closes
-      }
+      availableLanguage: ['Arabic']
     },
     address: {
       '@type': 'PostalAddress',
@@ -228,12 +234,6 @@ function localBusinessSchema() {
       latitude: business.latitude,
       longitude: business.longitude
     },
-    openingHoursSpecification: {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
-      opens: business.opens,
-      closes: business.closes
-    },
     areaServed: {
       '@type': 'City',
       name: 'الرياض'
@@ -243,7 +243,7 @@ function localBusinessSchema() {
       { '@type': 'PropertyValue', propertyID: 'عضوية الهيئة السعودية للمقاولين', value: business.contractorsMembership },
       { '@type': 'PropertyValue', propertyID: 'رقم رخصة النشاط التجاري', value: business.municipalLicense }
     ],
-    hasCredential: credentials,
+    hasCertification: certifications,
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
       name: 'خدمات المقاولات والتوريد',
@@ -253,7 +253,7 @@ function localBusinessSchema() {
   };
 }
 
-function schemaGraph(page, extraNodes, faqs, breadcrumbs) {
+function schemaGraph(page, extraNodes, breadcrumbs) {
   const webSite = {
     '@type': 'WebSite',
     '@id': business.siteUrl + '/#website',
@@ -278,7 +278,7 @@ function schemaGraph(page, extraNodes, faqs, breadcrumbs) {
     inLanguage: 'ar-SA',
     isPartOf: { '@id': business.siteUrl + '/#website' },
     about: { '@id': business.siteUrl + '/#business' },
-    primaryImageOfPage: { '@type': 'ImageObject', url: absoluteUrl(page.image || business.heroImage) }
+    primaryImageOfPage: { '@type': 'ImageObject', url: absoluteUrl(page.image || business.shareImage) }
   };
   const crumbItems = (breadcrumbs || []).map(function (crumb, index) {
     return {
@@ -290,32 +290,26 @@ function schemaGraph(page, extraNodes, faqs, breadcrumbs) {
   });
   const graph = [localBusinessSchema(), webSite, webPage];
   if (crumbItems.length > 1) {
+    webPage.breadcrumb = { '@id': absoluteUrl(page.path) + '#breadcrumb' };
     graph.push({
       '@type': 'BreadcrumbList',
       '@id': absoluteUrl(page.path) + '#breadcrumb',
       itemListElement: crumbItems
     });
   }
-  if (Array.isArray(faqs) && faqs.length) {
-    graph.push({
-      '@type': 'FAQPage',
-      '@id': absoluteUrl(page.path) + '#faq',
-      mainEntity: faqs.map(function (item) {
-        return {
-          '@type': 'Question',
-          name: item.question,
-          acceptedAnswer: { '@type': 'Answer', text: item.answer }
-        };
-      })
-    });
-  }
+  // Google retired FAQ rich results in May 2026; keep FAQs in the visible page.
+  const primaryEntity = (extraNodes || []).find(function (node) {
+    return node['@type'] === 'Service' || node['@type'] === 'BlogPosting';
+  });
+  if (primaryEntity) webPage.mainEntity = { '@id': primaryEntity['@id'] };
   (extraNodes || []).forEach(function (node) { graph.push(node); });
   return JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c');
 }
 
 function documentHead(page, schemaJson) {
   const canonical = absoluteUrl(page.path);
-  const image = absoluteUrl(page.image || business.heroImage);
+  const image = absoluteUrl(page.image || business.shareImage);
+  const imageDimensions = page.image && page.image !== business.shareImage ? '' : '<meta property="og:image:width" content="' + business.shareImageWidth + '"><meta property="og:image:height" content="' + business.shareImageHeight + '">';
   const robots = page.noindex ? 'noindex,follow' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
   const articleMeta = page.ogType === 'article'
     ? '<meta property="article:published_time" content="' + escapeHtml(page.datePublished || '') + '"><meta property="article:modified_time" content="' + escapeHtml(page.dateModified || '') + '">'
@@ -324,24 +318,24 @@ function documentHead(page, schemaJson) {
     ? '<link rel="preload" href="' + business.heroWebp + '" as="image" type="image/webp" fetchpriority="high">'
     : '';
 
-  return '<!DOCTYPE html><html lang="ar" dir="rtl"><head>' +
+  return '<!DOCTYPE html><html lang="ar-SA" dir="rtl"><head>' +
     '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
     '<title>' + escapeHtml(page.title) + '</title><meta name="description" content="' + escapeHtml(page.description) + '">' +
     '<meta name="robots" content="' + robots + '"><link rel="canonical" href="' + canonical + '"><link rel="alternate" hreflang="ar-SA" href="' + canonical + '">' +
     '<meta name="theme-color" content="#061421"><meta name="color-scheme" content="light">' +
     '<meta property="og:locale" content="ar_SA"><meta property="og:site_name" content="' + escapeHtml(business.name) + '"><meta property="og:type" content="' + escapeHtml(page.ogType || 'website') + '">' +
-    '<meta property="og:title" content="' + escapeHtml(page.title) + '"><meta property="og:description" content="' + escapeHtml(page.description) + '"><meta property="og:url" content="' + canonical + '"><meta property="og:image" content="' + image + '"><meta property="og:image:alt" content="' + escapeHtml(page.imageAlt || 'واجهة مقر ' + business.name) + '">' +
+    '<meta property="og:title" content="' + escapeHtml(page.title) + '"><meta property="og:description" content="' + escapeHtml(page.description) + '"><meta property="og:url" content="' + canonical + '"><meta property="og:image" content="' + image + '">' + imageDimensions + '<meta property="og:image:alt" content="' + escapeHtml(page.imageAlt || 'واجهة مقر ' + business.name) + '">' +
     '<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="' + escapeHtml(page.title) + '"><meta name="twitter:description" content="' + escapeHtml(page.description) + '"><meta name="twitter:image" content="' + image + '">' +
     articleMeta +
     '<link rel="icon" href="/assets/images/logo.svg" type="image/svg+xml"><link rel="manifest" href="/site.webmanifest"><link rel="alternate" type="application/rss+xml" title="مدونة ' + escapeHtml(business.shortName) + '" href="/feed.xml">' +
     '<link rel="preload" href="/assets/fonts/tajawal-400.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/noto-kufi-arabic-700.woff2" as="font" type="font/woff2" crossorigin>' + heroPreload +
-    '<link rel="stylesheet" href="/assets/css/styles.css"><script type="application/ld+json">' + schemaJson + '</script>' +
-    '<script src="/assets/js/main.js" defer></script><script src="/assets/js/assistant.js" defer></script></head>';
+    '<link rel="stylesheet" href="' + versionedAsset('/assets/css/styles.css') + '"><script type="application/ld+json">' + schemaJson + '</script>' +
+    '<script src="' + versionedAsset('/assets/js/main.js') + '" defer></script><script src="' + versionedAsset('/assets/js/assistant.js') + '" defer></script></head>';
 }
 
 function pageDocument(page, content, options) {
   const settings = options || {};
-  const schemaJson = schemaGraph(page, settings.extraNodes, settings.faqs, settings.breadcrumbs);
+  const schemaJson = schemaGraph(page, settings.extraNodes, settings.breadcrumbs);
   return documentHead(page, schemaJson) + '<body><a class="skip-link" href="#main-content">تجاوز إلى المحتوى</a>' +
     header(page.path) + content + footer() + floatingActions() + assistantMarkup() +
     (settings.includeCertificateDialog ? certificateDialog() : '') + '</body></html>';
@@ -418,9 +412,9 @@ function contactMapSection(kicker, title) {
     '<aside class="contact-panel" aria-label="بيانات موقع النشاط والتواصل"><h2>بيانات التواصل</h2><p>أرسل نوع الخدمة والحي والمساحة وصور الموقع للحصول على تقييم أولي وتنسيق الموعد.</p><div class="contact-list">' +
     '<div class="contact-item">' + icon('phone') + '<div><strong>الهاتف والواتساب</strong><a href="tel:' + business.phoneInternational + '">' + business.phoneDisplay + '</a></div></div>' +
     '<div class="contact-item">' + icon('map') + '<div><strong>العنوان</strong><span>' + escapeHtml(business.address) + '</span></div></div>' +
-    '<div class="contact-item">' + icon('clock') + '<div><strong>ساعات العمل</strong><span>' + escapeHtml(business.hoursLabel) + '<br>الجمعة: مغلق</span></div></div>' +
+    '<div class="contact-item">' + icon('clock') + '<div><strong>مواعيد الزيارة</strong><span>' + escapeHtml(business.hoursLabel) + '</span></div></div>' +
     '<div class="contact-item">' + icon('document') + '<div><strong>بيانات رسمية</strong><span>الرقم الوطني الموحد: ' + business.nationalUnifiedNumber + '<br>عضوية المقاولين: ' + business.contractorsMembership + '</span></div></div>' +
-    '</div><div class="contact-actions"><a class="button button-whatsapp" href="' + whatsappLink('السلام عليكم، أرغب في طلب معاينة أو عرض سعر. الموقع/الحي: ') + '" target="_blank" rel="noopener noreferrer">' + icon('whatsapp') + ' أرسل طلبك عبر واتساب</a><a class="button button-ghost" href="tel:' + business.phoneInternational + '">' + icon('phone') + ' اتصال&#160;مباشر</a></div></aside></div>' +
+    '</div><div class="contact-actions"><a class="button button-whatsapp" href="' + whatsappLink('السلام عليكم، أرغب في طلب معاينة أو عرض سعر. الموقع/الحي: ') + '" target="_blank" rel="noopener noreferrer">' + icon('whatsapp') + ' أرسل طلبك عبر واتساب</a><a class="button button-ghost" href="tel:' + business.phoneInternational + '">' + icon('phone') + ' اتصال&#160;مباشر</a><a class="button button-ghost button-map" href="' + escapeHtml(business.mapsUrl) + '" target="_blank" rel="noopener noreferrer">' + icon('map') + ' افتح موقع المحل على الخرائط</a></div></aside></div>' +
     '</div></section>';
 }
 
@@ -432,10 +426,10 @@ function ctaBand(title, description) {
 function homePage() {
   const page = {
     path: '/',
-    title: 'مكتب عبدالله عبدالرحمن الشمراني للتجارة والمقاولات | الرياض',
-    description: 'مقاولات عامة في الرياض تشمل بناء العظم والتسليم مفتاح والتشطيبات والترميم والكهرباء والسباكة وتوريد مواد البناء من مكتب عبدالله الشمراني.',
+    title: 'مكتب عبدالله عبدالرحمن الشمراني التجارية | الرياض',
+    description: business.description,
     preloadHero: true,
-    image: business.heroImage,
+    image: business.shareImage,
     imageAlt: 'واجهة محل مواد البناء والديكورات الجبسية التابع للمكتب في ظهرة لبن بالرياض'
   };
   const categoryCards = categories.map(categoryCard).join('');
@@ -469,9 +463,9 @@ function homePage() {
   };
 
   const content = '<main id="main-content">' +
-    '<section class="hero"><div class="container hero-grid"><div class="hero-copy"><span class="hero-kicker">مقاولات وتوريد من جهة واحدة في الرياض</span>' +
-    '<h1>' + escapeHtml(business.name.replace(' للتجارة والمقاولات', '')) + ' <span>للتجارة والمقاولات</span></h1>' +
-    '<p class="hero-lead">نبني ونرمم ونشطب ونصون، ونوفر مواد البناء والكهرباء والسباكة بخطة واضحة تخدم الفلل والمنازل والمشروعات في الرياض من المعاينة حتى التسليم.</p>' +
+    '<section class="hero"><div class="container hero-grid"><div class="hero-copy"><span class="hero-kicker">مواد بناء وديكورات جبسية في ظهرة لبن، الرياض</span>' +
+    '<h1>' + escapeHtml(business.name.replace(' التجارية', '')) + ' <span>التجارية</span></h1>' +
+    '<p class="hero-lead">من مواد البناء والديكورات الجبسية إلى مستلزمات الكهرباء والسباكة؛ نساعدك في تحديد احتياجك، وتنسيق التوريد وخدمات المقاولات والتشطيب والصيانة حسب نطاق المشروع.</p>' +
     '<div class="hero-actions"><a class="button button-primary" href="tel:' + business.phoneInternational + '">' + icon('phone') + ' اتصل:&#160;' + business.phoneDisplay + '</a><a class="button button-whatsapp" href="' + whatsappLink('السلام عليكم، أرغب في الاستفسار عن خدمات المقاولات.') + '" target="_blank" rel="noopener noreferrer">' + icon('whatsapp') + ' تواصل واتساب</a><a class="button button-ghost" href="/services/">استكشف الخدمات</a></div>' +
     '<ul class="hero-points"><li>' + icon('check') + ' نطاق عمل وبنود واضحة</li><li>' + icon('check') + ' تنسيق التنفيذ والتوريد</li><li>' + icon('check') + ' شهادات ووثائق معروضة</li><li>' + icon('check') + ' خدمة داخل مدينة الرياض</li></ul></div>' +
     '<div class="hero-media"><picture><source srcset="' + business.heroWebp + '" type="image/webp"><img src="' + business.heroImage + '" alt="' + escapeHtml(page.imageAlt) + '" width="577" height="640" fetchpriority="high" decoding="async"></picture><div class="hero-media-caption"><strong>صورة المحل الفعلية</strong>شارع تبوك، حي ظهرة لبن، الرياض 13784</div></div></div></section>' +
@@ -479,7 +473,7 @@ function homePage() {
     '<div class="trust-ribbon-item"><span class="trust-ribbon-icon">' + icon('certificate') + '</span><div><strong>عضوية الهيئة السعودية للمقاولين</strong><span>رقم ' + business.contractorsMembership + '</span></div></div>' +
     '<div class="trust-ribbon-item"><span class="trust-ribbon-icon">' + icon('quality') + '</span><div><strong>شهادات نظم الإدارة</strong><span>ISO 9001 • 14001 • 45001</span></div></div>' +
     '<div class="trust-ribbon-item"><span class="trust-ribbon-icon">' + icon('document') + '</span><div><strong>بيانات نشاط ظاهرة</strong><span>الرقم الموحد ' + business.nationalUnifiedNumber + '</span></div></div>' +
-    '<div class="trust-ribbon-item"><span class="trust-ribbon-icon">' + icon('clock') + '</span><div><strong>ساعات عمل ممتدة</strong><span>السبت–الخميس 4:30 ص–8:00 م</span></div></div>' +
+    '<div class="trust-ribbon-item"><span class="trust-ribbon-icon">' + icon('map') + '</span><div><strong>مقر النشاط</strong><span>شارع تبوك، ظهرة لبن، الرياض</span></div></div>' +
     '</div></section>' +
     '<section class="section"><div class="container">' + sectionHeading('حلول متكاملة', 'أربعة أقسام تغطي دورة المشروع', 'من الإنشاء والتشطيب إلى الصيانة وتوريد المواد، مع صفحات مستقلة لكل خدمة وتفاصيل تساعدك على اتخاذ قرار واضح.') + '<div class="category-grid">' + categoryCards + '</div></div></section>' +
     '<section class="section section-soft section-grid-bg" id="services"><div class="container">' + sectionHeading('خدماتنا', 'اثنتا عشرة خدمة متخصصة', 'اختر الخدمة المناسبة للاطلاع على نطاقها ومراحلها والأسئلة الشائعة قبل طلب المعاينة.') + serviceGroups + '</div></section>' +
@@ -634,7 +628,7 @@ function articleDetailPage(post) {
     mainEntityOfPage: { '@id': absoluteUrl(pathName) + '#webpage' },
     author: { '@id': business.siteUrl + '/#business' },
     publisher: { '@id': business.siteUrl + '/#business' },
-    image: absoluteUrl(business.heroImage),
+    image: absoluteUrl(business.shareImage),
     articleSection: post.category,
     keywords: [post.category, 'مقاولات', 'الرياض', 'السعودية']
   };
@@ -651,8 +645,8 @@ function articleDetailPage(post) {
 function aboutPage() {
   const page = {
     path: '/about/',
-    title: 'من نحن | مكتب عبدالله عبدالرحمن الشمراني للتجارة والمقاولات',
-    description: 'تعرف على مكتب عبدالله الشمراني للتجارة والمقاولات في الرياض، وخدماته وقيمه وبياناته الرسمية ونهجه في إدارة البناء والتشطيب والصيانة والتوريد.',
+    title: 'من نحن | مكتب عبدالله عبدالرحمن الشمراني التجارية',
+    description: 'تعرف على مكتب عبدالله الشمراني التجارية في الرياض، وخدماته وقيمه وبياناته الرسمية ونهجه في إدارة البناء والتشطيب والصيانة والتوريد.',
     schemaType: 'AboutPage'
   };
   const crumbs = [{ name: 'الرئيسية', path: '/' }, { name: 'من نحن', path: '/about/' }];
@@ -662,7 +656,7 @@ function aboutPage() {
     '<h2>رؤيتنا</h2><p>أن يكون المكتب جهة موثوقة لأصحاب الفلل والمباني والمقاولين في الرياض، تقدم تنفيذًا وتوريدًا منظمًا، وتساعد العميل على اتخاذ قرارات أفضل في المواد والمراحل والتكلفة.</p>' +
     '<h2>رسالتنا</h2><p>إدارة أعمال المقاولات والتشطيب والصيانة وفق نطاق واضح، والاهتمام بالتنسيق والاختبارات والتوثيق قبل إغلاق المراحل، مع توفير مواد ومستلزمات تتوافق مع احتياج المشروع.</p>' +
     '<h2>قيمنا في العمل</h2><ul><li><strong>الوضوح:</strong> شرح البنود والاستثناءات وآلية التغيير قبل التنفيذ.</li><li><strong>المسؤولية:</strong> توجيه الأعمال التي تحتاج مختصًا أو اعتمادًا هندسيًا إلى مسارها الصحيح.</li><li><strong>التنسيق:</strong> ربط التخصصات والمواد بالبرنامج بدل العمل المنفصل.</li><li><strong>الشفافية:</strong> عرض بيانات النشاط والمستندات التي قدمها صاحب المكتب كما هي.</li></ul>' +
-    '<h2>معلومات النشاط</h2><p>الاسم: ' + escapeHtml(business.name) + '<br>الهاتف: ' + business.phoneDisplay + '<br>العنوان: ' + escapeHtml(business.address) + '<br>ساعات العمل: ' + escapeHtml(business.hoursLabel) + '<br>الرقم الوطني الموحد: ' + business.nationalUnifiedNumber + '<br>عضوية الهيئة السعودية للمقاولين: ' + business.contractorsMembership + '<br>رخصة النشاط: ' + business.municipalLicense + '</p></article>' +
+    '<h2>معلومات النشاط</h2><p>الاسم: ' + escapeHtml(business.name) + '<br>الهاتف: ' + business.phoneDisplay + '<br>العنوان: ' + escapeHtml(business.address) + '<br>مواعيد الزيارة: ' + escapeHtml(business.hoursLabel) + '<br>الرقم الوطني الموحد: ' + business.nationalUnifiedNumber + '<br>عضوية الهيئة السعودية للمقاولين: ' + business.contractorsMembership + '<br>رخصة النشاط: ' + business.municipalLicense + '</p></article>' +
     '<aside class="service-sidebar" aria-label="وثائق النشاط والتواصل"><div class="sidebar-card sidebar-card-dark"><h2>شاهد الوثائق</h2><p>السجل التجاري ورخصة النشاط وعضوية المقاولين وشهادات ISO متاحة في صفحة مستقلة.</p><a class="button button-primary" href="/certificates/">الشهادات والوثائق</a></div><div class="sidebar-card"><h3>تواصل معنا</h3><p>' + escapeHtml(business.hoursLabel) + '</p><div class="sidebar-actions"><a class="button button-whatsapp" href="' + whatsappLink('السلام عليكم، أرغب في التعرف على خدمات المكتب.') + '" target="_blank" rel="noopener noreferrer">' + icon('whatsapp') + ' واتساب</a></div></div></aside></div></section>' +
     '<section class="section section-dark"><div class="container">' + sectionHeading('نطاق الخبرة', 'من العظم إلى التوريد', 'أقسام مترابطة تسمح بتنسيق المشروع أو اختيار خدمة مستقلة حسب الاحتياج.') + '<div class="feature-grid">' +
     categories.map(function (category) { return '<article class="feature-card"><span class="feature-icon">' + icon(category.icon) + '</span><h3>' + escapeHtml(category.title) + '</h3><p>' + escapeHtml(category.description) + '</p></article>'; }).join('') +
@@ -673,7 +667,7 @@ function aboutPage() {
 function certificatesPage() {
   const page = {
     path: '/certificates/',
-    title: 'الشهادات والوثائق | مكتب عبدالله الشمراني للتجارة والمقاولات',
+    title: 'الشهادات والوثائق | مكتب عبدالله الشمراني التجارية',
     description: 'عرض السجل التجاري ورخصة النشاط وعضوية الهيئة السعودية للمقاولين وشهادات ISO المرفقة باسم مكتب عبدالله الشمراني.',
     schemaType: 'CollectionPage'
   };
@@ -699,17 +693,17 @@ function certificatesPage() {
 function contactPage() {
   const page = {
     path: '/contact/',
-    title: 'تواصل معنا | مكتب عبدالله الشمراني للتجارة والمقاولات بالرياض',
+    title: 'تواصل معنا | مكتب عبدالله الشمراني التجارية بالرياض',
     description: 'اتصل أو تواصل واتساب مع مكتب عبدالله الشمراني على 0569600322، أو زر المقر في شارع تبوك بحي ظهرة لبن بالرياض خلال ساعات العمل.',
     schemaType: 'ContactPage'
   };
   const crumbs = [{ name: 'الرئيسية', path: '/' }, { name: 'تواصل معنا', path: '/contact/' }];
-  const content = '<main id="main-content">' + pageHero('تواصل معنا', 'أرسل تفاصيل مشروع البناء أو التشطيب أو الصيانة أو قائمة المواد، وسنراجعها خلال ساعات العمل ونوضح الخطوة التالية.', crumbs, [business.phoneDisplay, 'ظهرة لبن — الرياض', 'السبت إلى الخميس']) +
+  const content = '<main id="main-content">' + pageHero('تواصل معنا', 'أرسل تفاصيل المشروع أو قائمة المواد لتنسيق طلبك، واتصل قبل زيارة المحل لتأكيد الموعد المناسب.', crumbs, [business.phoneDisplay, 'ظهرة لبن — الرياض', 'مواعيد الزيارة بالتواصل']) +
     '<section class="section"><div class="container"><div class="category-grid">' +
     '<article class="category-card"><span class="category-icon">' + icon('phone') + '</span><h3>اتصال مباشر</h3><p>للاستفسار وتنسيق المعاينة خلال ساعات العمل.</p><a class="button button-secondary" href="tel:' + business.phoneInternational + '">' + business.phoneDisplay + '</a></article>' +
     '<article class="category-card"><span class="category-icon">' + icon('whatsapp') + '</span><h3>واتساب</h3><p>أرسل الحي والمساحة والصور أو قائمة المواد.</p><a class="button button-whatsapp" href="' + whatsappLink('السلام عليكم، لدي طلب جديد. نوع الخدمة: ') + '" target="_blank" rel="noopener noreferrer">إرسال الطلب</a></article>' +
     '<article class="category-card"><span class="category-icon">' + icon('map') + '</span><h3>العنوان</h3><p>' + escapeHtml(business.address) + '</p><a class="card-link" href="#map">عرض الخريطة ' + icon('arrow') + '</a></article>' +
-    '<article class="category-card"><span class="category-icon">' + icon('clock') + '</span><h3>ساعات العمل</h3><p>' + escapeHtml(business.hoursLabel) + '<br>الجمعة: مغلق</p></article>' +
+    '<article class="category-card"><span class="category-icon">' + icon('clock') + '</span><h3>مواعيد الزيارة</h3><p>' + escapeHtml(business.hoursLabel) + '</p></article>' +
     '</div></div></section><div id="map">' + contactMapSection('الوصول إلى المقر', 'الخريطة المضمنة والعنوان الفعلي') + '</div>' +
     '<section class="section"><div class="container"><div class="prose"><h2>معلومات تساعدنا على خدمتك بسرعة</h2><ul><li>نوع الخدمة المطلوبة ومرحلة المشروع الحالية.</li><li>الحي ورابط الموقع ونوع العقار.</li><li>المساحة أو الأبعاد التقريبية وعدد الأدوار.</li><li>صور واضحة أو مخططات أو قائمة مواد.</li><li>الموعد المستهدف والميزانية التقريبية إن أمكن.</li></ul><p>لا ترسل بيانات حساسة أو وثائق شخصية عبر نموذج المساعد. يكفي وصف المشروع وبيانات التواصل التي تختار مشاركتها عبر واتساب.</p></div></div></section></main>';
   return pageDocument(page, content, { breadcrumbs: crumbs });
@@ -718,7 +712,7 @@ function contactPage() {
 function privacyPage() {
   const page = {
     path: '/privacy/',
-    title: 'سياسة الخصوصية | مكتب عبدالله الشمراني للتجارة والمقاولات',
+    title: 'سياسة الخصوصية | مكتب عبدالله الشمراني التجارية',
     description: 'سياسة الخصوصية للموقع وتوضيح طريقة الانتقال إلى واتساب والخريطة والروابط الخارجية دون تخزين رسائل الزوار داخل الموقع.'
   };
   const crumbs = [{ name: 'الرئيسية', path: '/' }, { name: 'سياسة الخصوصية', path: '/privacy/' }];
@@ -757,7 +751,7 @@ function writeRoute(route, html, metadata) {
   writeTextFile(outputPath, html);
   generatedRoutes.push(Object.assign({
     path: route,
-    lastmod: '2026-08-16',
+    lastmod: business.contentUpdatedAt,
     changefreq: route === '/' ? 'weekly' : 'monthly',
     priority: route === '/' ? '1.0' : '0.7'
   }, metadata || {}));
