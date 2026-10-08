@@ -82,6 +82,64 @@
       });
     }
 
+    var filterBar = document.querySelector('[data-service-filters]');
+    var serviceResults = document.querySelector('[data-service-results]');
+    var serviceStatus = document.querySelector('[data-service-status]');
+    if (filterBar && serviceResults) {
+      var filterButtons = Array.from(filterBar.querySelectorAll('[data-service-filter]'));
+      var serviceGroups = Array.from(serviceResults.querySelectorAll('.service-group'));
+      function selectServiceGroup(value) {
+        var selected = filterButtons.find(function (button) {
+          return button.getAttribute('data-service-filter') === value;
+        });
+        if (!selected) return;
+        filterButtons.forEach(function (button) {
+          var active = button === selected;
+          button.setAttribute('aria-pressed', String(active));
+          button.classList.toggle('is-active', active);
+        });
+        var visibleCount = 0;
+        serviceGroups.forEach(function (group) {
+          group.hidden = value !== 'all' && group.id !== value;
+          if (!group.hidden) visibleCount += group.querySelectorAll('.service-card').length;
+        });
+        if (serviceStatus) serviceStatus.textContent = 'عرض ' + visibleCount + ' خدمات ضمن ' + selected.textContent.trim().replace(/\s+\d+$/, '') + '.';
+      }
+      filterBar.hidden = false;
+      filterButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          selectServiceGroup(button.getAttribute('data-service-filter'));
+        });
+      });
+      function followServiceAnchor() {
+        var anchor = window.location.hash.slice(1);
+        if (serviceGroups.some(function (group) { return group.id === anchor; })) selectServiceGroup(anchor);
+      }
+      followServiceAnchor();
+      window.addEventListener('hashchange', followServiceAnchor);
+    }
+
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (!reduceMotion.matches && 'IntersectionObserver' in window) {
+      var cardObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var card = entry.target;
+          card.classList.add('card-enter');
+          card.addEventListener('animationend', function () { card.classList.remove('card-enter'); }, { once: true });
+          cardObserver.unobserve(card);
+        });
+      }, { threshold: 0.08 });
+      document.querySelectorAll('.category-card, .service-card, .feature-card, .process-card, .certificate-card, .blog-card').forEach(function (card) {
+        cardObserver.observe(card);
+      });
+      reduceMotion.addEventListener('change', function (event) {
+        if (!event.matches) return;
+        cardObserver.disconnect();
+        document.querySelectorAll('.card-enter').forEach(function (card) { card.classList.remove('card-enter'); });
+      });
+    }
+
     document.querySelectorAll('.faq-list').forEach(function (list) {
       list.addEventListener('toggle', function (event) {
         var openedItem = event.target;

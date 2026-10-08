@@ -370,12 +370,19 @@ function faqMarkup(faqs) {
   }).join('') + '</div>';
 }
 
-function categoryCard(category) {
+function categoryCard(category, index) {
   const links = category.serviceSlugs.map(function (slug) {
     const service = services.find(function (item) { return item.slug === slug; });
     return service ? '<a href="/services/' + service.slug + '/">' + escapeHtml(service.shortTitle) + '</a>' : '';
   }).join('');
-  return '<article class="category-card"><span class="category-icon">' + icon(category.icon) + '</span><h3>' + escapeHtml(category.title) + '</h3><p>' + escapeHtml(category.description) + '</p><div class="category-links">' + links + '</div></article>';
+  return '<article class="category-card"><div class="category-card-top"><span class="category-icon">' + icon(category.icon) + '</span><span class="category-number" aria-hidden="true">' + String(index + 1).padStart(2, '0') + '</span></div><h3>' + escapeHtml(category.title) + '</h3><p>' + escapeHtml(category.description) + '</p><div class="category-links">' + links + '</div></article>';
+}
+
+function serviceFilters() {
+  return '<div class="service-filter-bar" data-service-filters hidden role="group" aria-label="اختر قسم الخدمات"><button class="service-filter is-active" type="button" data-service-filter="all" aria-pressed="true" aria-controls="service-results">كل الخدمات <span>' + services.length + '</span></button>' +
+    categories.map(function (category) {
+      return '<button class="service-filter" type="button" data-service-filter="' + category.id + '" aria-pressed="false" aria-controls="service-results">' + escapeHtml(category.title) + '<span>' + category.serviceSlugs.length + '</span></button>';
+    }).join('') + '</div><p class="sr-only" data-service-status role="status" aria-live="polite"></p>';
 }
 
 function serviceCard(service, index) {
@@ -384,7 +391,7 @@ function serviceCard(service, index) {
 }
 
 function blogCard(post) {
-  return '<article class="blog-card"><div class="blog-card-art">' + icon('blog') + '</div><div class="blog-card-content">' +
+  return '<article class="blog-card"><div class="blog-card-art"><span class="blog-art-label">' + escapeHtml(post.category) + '</span>' + icon('blog') + '<span class="blog-art-caption">من الفكرة إلى التفاصيل</span></div><div class="blog-card-content">' +
     '<div class="blog-meta"><span>' + escapeHtml(post.category) + '</span><span>•</span><time datetime="' + post.datePublished + '">' + post.datePublished + '</time></div>' +
     '<h3>' + escapeHtml(post.title) + '</h3><p>' + escapeHtml(post.summary) + '</p><a class="card-link" href="/blog/' + post.slug + '/">اقرأ المقال ' + icon('arrow') + '</a></div></article>';
 }
@@ -463,27 +470,28 @@ function homePage() {
   };
 
   const content = '<main id="main-content">' +
-    '<section class="hero"><div class="container hero-grid"><div class="hero-copy"><span class="hero-kicker">مواد بناء وديكورات جبسية في ظهرة لبن، الرياض</span>' +
-    '<h1>' + escapeHtml(business.name.replace(' التجارية', '')) + ' <span>التجارية</span></h1>' +
-    '<p class="hero-lead">من مواد البناء والديكورات الجبسية إلى مستلزمات الكهرباء والسباكة؛ نساعدك في تحديد احتياجك، وتنسيق التوريد وخدمات المقاولات والتشطيب والصيانة حسب نطاق المشروع.</p>' +
-    '<div class="hero-actions"><a class="button button-primary" href="tel:' + business.phoneInternational + '">' + icon('phone') + ' اتصل:&#160;' + business.phoneDisplay + '</a><a class="button button-whatsapp" href="' + whatsappLink('السلام عليكم، أرغب في الاستفسار عن خدمات المقاولات.') + '" target="_blank" rel="noopener noreferrer">' + icon('whatsapp') + ' تواصل واتساب</a><a class="button button-ghost" href="/services/">استكشف الخدمات</a></div>' +
-    '<ul class="hero-points"><li>' + icon('check') + ' نطاق عمل وبنود واضحة</li><li>' + icon('check') + ' تنسيق التنفيذ والتوريد</li><li>' + icon('check') + ' شهادات ووثائق معروضة</li><li>' + icon('check') + ' خدمة داخل مدينة الرياض</li></ul></div>' +
-    '<div class="hero-media"><picture><source srcset="' + business.heroWebp + '" type="image/webp"><img src="' + business.heroImage + '" alt="' + escapeHtml(page.imageAlt) + '" width="577" height="640" fetchpriority="high" decoding="async"></picture><div class="hero-media-caption"><strong>صورة المحل الفعلية</strong>شارع تبوك، حي ظهرة لبن، الرياض 13784</div></div></div></section>' +
+    '<section class="hero"><div class="container hero-grid"><div class="hero-copy"><span class="hero-kicker">' + icon('map') + 'ظهرة لبن · الرياض</span>' +
+    '<p class="hero-eyebrow">من اختيار المواد إلى تفاصيل التشطيب</p><h1><span class="hero-name-prefix">' + escapeHtml(business.name.replace(' الشمراني التجارية', '')) + '</span> <span>الشمراني التجارية</span></h1>' +
+    '<p class="hero-lead">مواد البناء والديكورات الجبسية، ومستلزمات الكهرباء والسباكة، مع تنسيق خدمات المقاولات والتشطيب والصيانة حسب نطاق طلبك.</p>' +
+    '<div class="hero-tags"><span>' + icon('supply') + 'مواد بناء</span><span>' + icon('ceiling') + 'ديكورات جبسية</span><span>' + icon('quality') + 'تشطيب وصيانة</span></div>' +
+    '<div class="hero-actions"><a class="button button-primary" href="' + whatsappLink('السلام عليكم، أرغب في الاستفسار عن المواد والخدمات المتاحة.') + '" target="_blank" rel="noopener noreferrer">' + icon('whatsapp') + ' تحدث معنا عن طلبك</a><a class="button button-ghost" href="#services">استكشف الخدمات ' + icon('arrow') + '</a></div>' +
+    '<div class="hero-contact"><a href="tel:' + business.phoneInternational + '">' + icon('phone') + '<span>اتصال مباشر <bdi>' + business.phoneDisplay + '</bdi></span></a><a href="/certificates/">' + icon('document') + 'وثائق النشاط ' + icon('arrow') + '</a></div></div>' +
+    '<div class="hero-visual"><div class="hero-media"><span class="hero-photo-label">المحل من الخارج</span><picture><source srcset="' + business.heroWebp + '" type="image/webp"><img src="' + business.heroImage + '" alt="' + escapeHtml(page.imageAlt) + '" width="577" height="640" fetchpriority="high" decoding="async"></picture><div class="hero-media-caption"><span class="hero-location-icon">' + icon('map') + '</span><div><strong>شارع تبوك، حي ظهرة لبن</strong><span>الرياض 13784 · صورة المحل الفعلية</span></div><a href="' + escapeHtml(business.mapsUrl) + '" target="_blank" rel="noopener noreferrer" aria-label="موقع المحل على خرائط جوجل">' + icon('arrow') + '</a></div></div><span class="hero-visual-note" aria-hidden="true">مواد البناء / الديكورات الجبسية</span></div></div></section>' +
     '<section class="trust-ribbon" aria-label="بيانات الثقة"><div class="container trust-ribbon-grid">' +
     '<div class="trust-ribbon-item"><span class="trust-ribbon-icon">' + icon('certificate') + '</span><div><strong>عضوية الهيئة السعودية للمقاولين</strong><span>رقم ' + business.contractorsMembership + '</span></div></div>' +
     '<div class="trust-ribbon-item"><span class="trust-ribbon-icon">' + icon('quality') + '</span><div><strong>شهادات نظم الإدارة</strong><span>ISO 9001 • 14001 • 45001</span></div></div>' +
     '<div class="trust-ribbon-item"><span class="trust-ribbon-icon">' + icon('document') + '</span><div><strong>بيانات نشاط ظاهرة</strong><span>الرقم الموحد ' + business.nationalUnifiedNumber + '</span></div></div>' +
     '<div class="trust-ribbon-item"><span class="trust-ribbon-icon">' + icon('map') + '</span><div><strong>مقر النشاط</strong><span>شارع تبوك، ظهرة لبن، الرياض</span></div></div>' +
     '</div></section>' +
-    '<section class="section"><div class="container">' + sectionHeading('حلول متكاملة', 'أربعة أقسام تغطي دورة المشروع', 'من الإنشاء والتشطيب إلى الصيانة وتوريد المواد، مع صفحات مستقلة لكل خدمة وتفاصيل تساعدك على اتخاذ قرار واضح.') + '<div class="category-grid">' + categoryCards + '</div></div></section>' +
-    '<section class="section section-soft section-grid-bg" id="services"><div class="container">' + sectionHeading('خدماتنا', 'اثنتا عشرة خدمة متخصصة', 'اختر الخدمة المناسبة للاطلاع على نطاقها ومراحلها والأسئلة الشائعة قبل طلب المعاينة.') + serviceGroups + '</div></section>' +
+    '<section class="section home-categories"><div class="container">' + sectionHeading('كل احتياج له قسم', 'خطوتك التالية تبدأ من هنا', 'مواد وتوريد، تشطيب وديكور، صيانة أو مقاولات. اختر القسم الأقرب إلى احتياجك وتعرّف على التفاصيل.') + '<div class="category-grid">' + categoryCards + '</div></div></section>' +
+    '<section class="section section-soft section-grid-bg home-services" id="services"><div class="container">' + sectionHeading('خدماتنا', 'تفاصيل واضحة لاختيار أسهل', 'استعرض خدماتنا الاثنتي عشرة، أو اختر قسمًا للوصول مباشرة إلى ما تحتاجه.') + serviceFilters() + '<div id="service-results" data-service-results>' + serviceGroups + '</div></div></section>' +
     '<section class="section section-dark"><div class="container">' + sectionHeading('لماذا نحن؟', 'إدارة عملية للمقاولات والتوريد', 'نركز على وضوح القرار وتنسيق التخصصات وحماية المراحل المنفذة بدل التعامل مع كل بند بمعزل عن بقية المشروع.') +
     '<div class="feature-grid"><article class="feature-card"><span class="feature-icon">' + icon('document') + '</span><h3>نطاق موثق</h3><p>تحديد البنود والكميات والاستثناءات ومسؤولية التوريد قبل التنفيذ.</p></article><article class="feature-card"><span class="feature-icon">' + icon('team') + '</span><h3>تنسيق التخصصات</h3><p>ربط العظم والكهرباء والسباكة والجبس والأرضيات في تسلسل واحد.</p></article><article class="feature-card"><span class="feature-icon">' + icon('quality') + '</span><h3>نقاط فحص مرحلية</h3><p>مراجعة الأعمال المخفية واختبارها قبل الإغلاق والانتقال للتشطيب.</p></article><article class="feature-card"><span class="feature-icon">' + icon('supply') + '</span><h3>توريد منظم</h3><p>جدولة المواد وفق تقدم المشروع لتقليل التخزين والهدر والتوقف.</p></article></div></div></section>' +
     '<section class="section"><div class="container">' + sectionHeading('طريقة العمل', 'أربع خطوات من الطلب إلى التسليم', 'مسار بسيط وواضح يساعد على جمع المعلومات واعتماد النطاق ومتابعة التنفيذ.') +
     '<div class="process-grid"><article class="process-card"><h3>طلب ومعاينة</h3><p>إرسال الموقع والمخطط والصور ثم تحديد الحاجة إلى زيارة ميدانية.</p></article><article class="process-card"><h3>نطاق وعرض</h3><p>تحديد البنود والمواد والمدة والدفعات والاستثناءات بصورة مكتوبة.</p></article><article class="process-card"><h3>تنفيذ ومتابعة</h3><p>ترتيب الفرق والتوريد ونقاط الفحص وتوثيق التغييرات قبل العمل.</p></article><article class="process-card"><h3>استلام وملاحظات</h3><p>فحص النطاق المنفذ وتسجيل الملاحظات وإغلاقها ثم التسليم.</p></article></div></div></section>' +
     '<section class="section section-soft" id="certificates"><div class="container"><div class="certificate-intro"><div class="certificate-intro-card"><span class="section-kicker">الثقة والشفافية</span><h2>الشهادات والوثائق الرسمية</h2><p>نعرض المستندات التي أرفقها صاحب النشاط كما هي، مع إمكانية فتح النسخة الأصلية وقراءة الرقم والتاريخ والنطاق من مصدر الوثيقة نفسها.</p><a class="button button-primary" href="/certificates/">صفحة الشهادات</a></div><div class="certificate-facts"><div class="certificate-fact"><strong>الرقم الوطني الموحد</strong><span>' + business.nationalUnifiedNumber + '</span></div><div class="certificate-fact"><strong>عضوية المقاولين</strong><span>' + business.contractorsMembership + '</span></div><div class="certificate-fact"><strong>رخصة النشاط</strong><span>' + business.municipalLicense + '</span></div><div class="certificate-fact"><strong>المقر</strong><span>ظهرة لبن، الرياض 13784</span></div></div></div><div class="certificate-grid">' + certificateCards + '</div></div></section>' +
     '<section class="section"><div class="container">' + sectionHeading('مركز المعرفة', 'أدلة عملية للبناء والتشطيب والصيانة', 'مقالات تساعد أصحاب المشروعات على فهم البنود والمواد والمراحل قبل التعاقد أو التنفيذ.') + '<div class="blog-grid">' + latestPosts + '</div><div class="blog-index-cta"><a class="button button-secondary" href="/blog/">كل المقالات ' + icon('arrow') + '</a></div></div></section>' +
-    '<section class="section section-soft"><div class="container">' + sectionHeading('الأسئلة الشائعة', 'معلومات مهمة قبل طلب الخدمة', 'إجابات مباشرة عن التسعير والمعاينة والنطاق والتوريد وساعات العمل.') + faqMarkup(homeFaqs) + '</div></section>' +
+    '<section class="section section-soft home-faq"><div class="container faq-layout"><div class="faq-intro">' + sectionHeading('قبل أن تبدأ', 'كل سؤال يقرّبك من القرار', 'إجابات مباشرة عن التسعير والمعاينة والنطاق والتوريد ومواعيد الزيارة.') + '<a class="button button-outline" href="' + whatsappLink('السلام عليكم، لدي سؤال عن المواد أو الخدمات.') + '" target="_blank" rel="noopener noreferrer">' + icon('whatsapp') + 'لديك سؤال آخر؟</a></div>' + faqMarkup(homeFaqs) + '</div></section>' +
     contactMapSection('موقع النشاط', 'الخريطة والعنوان وبيانات التواصل') +
     '</main>';
 
@@ -522,7 +530,7 @@ function servicesIndexPage() {
     })
   };
   const content = '<main id="main-content">' + pageHero('خدمات المقاولات والتشطيبات والتوريد', 'اثنتا عشرة صفحة خدمة متخصصة تغطي الإنشاء والتشطيب والصيانة والتوريد في الرياض، مع نطاق ومراحل وأسئلة شائعة لكل خدمة.', crumbs, ['الرياض', 'مقاولات عامة', 'تشطيبات وصيانة', 'توريد مواد']) +
-    '<section class="section"><div class="container">' + groups + '</div></section>' +
+    '<section class="section"><div class="container">' + serviceFilters() + '<div id="service-results" data-service-results>' + groups + '</div></div></section>' +
     ctaBand('مشروعك يحتاج أكثر من خدمة؟', 'أرسل المخطط أو صور الموقع لنرتب نطاقًا يجمع الأعمال المترابطة دون تعارض.') + '</main>';
   return pageDocument(page, content, { extraNodes: [serviceList], breadcrumbs: crumbs });
 }
